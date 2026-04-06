@@ -1,0 +1,12 @@
+# Build outputs
+buildroot/output/
+buildroot/dl/
+
+# Editor/temp files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
