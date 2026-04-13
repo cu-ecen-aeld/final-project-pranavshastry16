@@ -10,3 +10,5 @@ buildroot/dl/
 
 # Logs
 *.log
+
+out/
