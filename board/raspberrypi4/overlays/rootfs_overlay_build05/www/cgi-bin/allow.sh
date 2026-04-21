@@ -2,11 +2,12 @@
 
 QUERY="$QUERY_STRING"
 CLIENT_IP="$(printf '%s\n' "$QUERY" | sed -n 's/.*ip=\([^&]*\).*/\1/p' | sed 's/%2E/./g')"
-RETURN_PAGE="$(printf '%s\n' "$QUERY" | sed -n 's/.*return=\([^&]*\).*/\1/p')"
 
 IPT="/usr/sbin/iptables"
 [ -x "$IPT" ] || IPT="/sbin/iptables"
 [ -x "$IPT" ] || IPT="iptables"
+
+AUTH_FILE="/tmp/authorized_clients"
 
 if [ -n "$CLIENT_IP" ]; then
     $IPT -C FORWARD -s "$CLIENT_IP" -i wlan0 -o eth0 -j ACCEPT 2>/dev/null || \
@@ -14,9 +15,10 @@ if [ -n "$CLIENT_IP" ]; then
 
     $IPT -C FORWARD -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
     $IPT -I FORWARD 1 -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-fi
 
-[ "$RETURN_PAGE" = "unauth" ] || RETURN_PAGE="auth_clients"
+    touch "$AUTH_FILE"
+    grep -qx "$CLIENT_IP" "$AUTH_FILE" 2>/dev/null || echo "$CLIENT_IP" >> "$AUTH_FILE"
+fi
 
 echo "Content-Type: text/html"
 echo ""

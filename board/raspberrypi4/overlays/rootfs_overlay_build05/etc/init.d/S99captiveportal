@@ -25,6 +25,8 @@ case "$1" in
         dnsmasq --conf-file=/etc/dnsmasq.conf
         lighttpd -f /etc/lighttpd/lighttpd.conf
 
+	: > /tmp/authorized_clients
+
         iptables -F
         iptables -t nat -F
         iptables -P FORWARD DROP

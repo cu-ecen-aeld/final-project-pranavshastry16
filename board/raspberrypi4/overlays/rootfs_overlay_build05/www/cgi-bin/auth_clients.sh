@@ -1,7 +1,7 @@
 #!/bin/sh
 
 LEASE_FILE="/var/lib/misc/dnsmasq.leases"
-TMP_AUTH="/tmp/admin_auth_ips.txt"
+AUTH_FILE="/tmp/authorized_clients"
 
 lease_remaining() {
     expiry="$1"
@@ -22,14 +22,9 @@ lease_remaining() {
     fi
 }
 
-iptables -S FORWARD 2>/dev/null | awk '
-/^-A FORWARD/ && /-i wlan0/ && /-o eth0/ && /-j ACCEPT/ {
-    for (i=1; i<=NF; i++) if ($i=="-s") print $(i+1)
-}' > "$TMP_AUTH"
-
 is_auth() {
     ip="$1"
-    grep -qx "$ip" "$TMP_AUTH" 2>/dev/null
+    grep -qx "$ip" "$AUTH_FILE" 2>/dev/null
 }
 
 echo "Content-Type: text/html"
@@ -85,7 +80,6 @@ if [ -f "$LEASE_FILE" ]; then
             echo "<td>"
             echo "<form action=\"/cgi-bin/deauth.sh\" method=\"get\">"
             echo "<input type=\"hidden\" name=\"ip\" value=\"$ip\">"
-            echo "<input type=\"hidden\" name=\"return\" value=\"auth\">"
             echo "<button class=\"btn-red\" type=\"submit\">Remove Access</button>"
             echo "</form>"
             echo "</td>"
