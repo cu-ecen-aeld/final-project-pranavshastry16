@@ -2,6 +2,7 @@
 
 QUERY="$QUERY_STRING"
 CLIENT_IP="$(printf '%s\n' "$QUERY" | sed -n 's/.*ip=\([^&]*\).*/\1/p' | sed 's/%2E/./g')"
+RETURN_PAGE="$(printf '%s\n' "$QUERY" | sed -n 's/.*return=\([^&]*\).*/\1/p')"
 
 IPT="/usr/sbin/iptables"
 [ -x "$IPT" ] || IPT="/sbin/iptables"
@@ -15,6 +16,8 @@ if [ -n "$CLIENT_IP" ]; then
     $IPT -I FORWARD 1 -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 fi
 
+[ "$RETURN_PAGE" = "unauth" ] || RETURN_PAGE="auth_clients"
+
 echo "Content-Type: text/html"
 echo ""
 cat <<HTML
@@ -22,13 +25,9 @@ cat <<HTML
 <html>
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="refresh" content="0; url=/cgi-bin/unauth_clients.sh">
 <title>Access Allowed</title>
-<meta http-equiv="refresh" content="1; url=/admin.html">
 </head>
-<body style="font-family: Arial, sans-serif; padding: 30px;">
-<h2>Client Access Allowed</h2>
-<p>Granted internet authorization for: <code>${CLIENT_IP}</code></p>
-<p>Redirecting back to admin portal...</p>
-</body>
+<body></body>
 </html>
 HTML

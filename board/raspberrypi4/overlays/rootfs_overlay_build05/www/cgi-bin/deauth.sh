@@ -19,13 +19,9 @@ cat <<HTML
 <html>
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="refresh" content="0; url=/cgi-bin/auth_clients.sh">
 <title>Access Removed</title>
-<meta http-equiv="refresh" content="1; url=/admin.html">
 </head>
-<body style="font-family: Arial, sans-serif; padding: 30px;">
-<h2>Client Access Removed</h2>
-<p>Removed internet authorization for: <code>${CLIENT_IP}</code></p>
-<p>Redirecting back to admin portal...</p>
-</body>
+<body></body>
 </html>
 HTML
