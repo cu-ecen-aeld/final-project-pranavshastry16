@@ -8,8 +8,11 @@ IPT="/usr/sbin/iptables"
 [ -x "$IPT" ] || IPT="iptables"
 
 if [ -n "$CLIENT_IP" ]; then
-    while $IPT -D FORWARD -s "$CLIENT_IP" -i wlan0 -o eth0 -j ACCEPT 2>/dev/null; do :; done
-    while $IPT -D FORWARD -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null; do :; done
+    $IPT -C FORWARD -s "$CLIENT_IP" -i wlan0 -o eth0 -j ACCEPT 2>/dev/null || \
+    $IPT -I FORWARD 1 -s "$CLIENT_IP" -i wlan0 -o eth0 -j ACCEPT
+
+    $IPT -C FORWARD -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
+    $IPT -I FORWARD 1 -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 fi
 
 echo "Content-Type: text/html"
@@ -19,12 +22,12 @@ cat <<HTML
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Access Removed</title>
+<title>Access Allowed</title>
 <meta http-equiv="refresh" content="1; url=/admin.html">
 </head>
 <body style="font-family: Arial, sans-serif; padding: 30px;">
-<h2>Client Access Removed</h2>
-<p>Removed internet authorization for: <code>${CLIENT_IP}</code></p>
+<h2>Client Access Allowed</h2>
+<p>Granted internet authorization for: <code>${CLIENT_IP}</code></p>
 <p>Redirecting back to admin portal...</p>
 </body>
 </html>
