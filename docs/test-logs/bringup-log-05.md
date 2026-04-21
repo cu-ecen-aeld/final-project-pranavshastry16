@@ -6,7 +6,7 @@ Custom captive portal build on top of the working automated AP gateway.
 ## Build 05 additions
 - Added lighttpd web server
 - Added captive portal landing page
-- Added CGI login/accept handler
+- Added CGI login handler
 - Added Build 05 specific overlay
 - Added captive portal init script
 - Planned HTTP redirect for unauthenticated clients
