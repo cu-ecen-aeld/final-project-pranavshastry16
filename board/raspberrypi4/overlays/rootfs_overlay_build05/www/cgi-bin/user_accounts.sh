@@ -1,11 +1,18 @@
 #!/bin/sh
 USER_DB="/etc/gateway/user_accounts.db"
 MAP_DB="/etc/gateway/device_account_map.db"
+AUTH_FILE="/tmp/authorized_clients"
 
 count_devices() {
     user="$1"
     [ -f "$MAP_DB" ] || { echo 0; return; }
-    awk -F'|' -v u="$user" '$3 == u { c++ } END { print c+0 }' "$MAP_DB"
+    awk -F'|' -v u="$user" '
+    BEGIN {
+        while ((getline line < "/tmp/authorized_clients") > 0) auth[line]=1
+        close("/tmp/authorized_clients")
+    }
+    $3 == u && auth[$1] { c++ }
+    END { print c+0 }' "$MAP_DB"
 }
 
 echo "Content-Type: text/html"
@@ -22,6 +29,7 @@ th { background: #f0f0f0; }
 .usercol { width: 220px; }
 .btn-blue { display:inline-block; background:#2563eb; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; }
 .btn-red { display:inline-block; background:#b91c1c; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; }
+.btn-green { display:inline-block; background:#15803d; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; }
 </style>
 <script>
 function confirmDelete(url) {
@@ -35,14 +43,14 @@ function confirmDelete(url) {
 <h1>User Account Management</h1>
 <p><a class="btn-blue" href="/cgi-bin/create_user_account.sh">Create New User Account</a></p>
 <table>
-<tr><th class="numcol">Account Number</th><th class="usercol">Username</th><th>Connected Devices</th><th>Enabled or Disabled</th><th>Configure</th><th>Delete</th></tr>
+<tr><th class="numcol">Account Number</th><th class="usercol">Username</th><th>Connected Devices</th><th>View Devices</th><th>Enabled or Disabled</th><th>Configure</th><th>Delete</th></tr>
 HTML
 
 if [ -f "$USER_DB" ]; then
     while IFS='|' read -r num user pass maxdev state; do
         [ -z "$num" ] && continue
         cnt="$(count_devices "$user")"
-        echo "<tr><td>$num</td><td>$user</td><td>$cnt</td><td>$state</td><td><a class=\"btn-blue\" href=\"/cgi-bin/user_account_config.sh?num=$num\">Configure</a></td><td><a class=\"btn-red\" href=\"javascript:void(0);\" onclick=\"confirmDelete('/cgi-bin/delete_user_account.sh?num=$num')\">Delete</a></td></tr>"
+        echo "<tr><td>$num</td><td>$user</td><td>$cnt</td><td><a class=\"btn-green\" href=\"/cgi-bin/view_user_devices.sh?user=$user\">View Devices</a></td><td>$state</td><td><a class=\"btn-blue\" href=\"/cgi-bin/user_account_config.sh?num=$num\">Configure</a></td><td><a class=\"btn-red\" href=\"javascript:void(0);\" onclick=\"confirmDelete('/cgi-bin/delete_user_account.sh?num=$num')\">Delete</a></td></tr>"
     done < "$USER_DB"
 fi
 

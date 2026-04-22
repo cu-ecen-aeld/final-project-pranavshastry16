@@ -10,12 +10,13 @@ cat <<'HTML'
 <style>
 body { font-family: Arial, sans-serif; margin: 24px; }
 .banner-green { background:#dcfce7; padding:14px; border-radius:8px; margin-bottom:18px; font-size:28px; font-weight:bold; width:100%; }
-.banner-red { background:#fee2e2; padding:14px; border-radius:8px; margin:28px 0 18px 0; font-size:28px; font-weight:bold; width:100%; }
+.banner-red { background:#fee2e2; padding:14px; border-radius:8px; margin:36px 0 18px 0; font-size:28px; font-weight:bold; width:100%; }
 table { border-collapse: collapse; width: 100%; background:white; margin-bottom:18px; }
 th, td { border:1px solid #ccc; padding:8px; text-align:left; }
 th { background:#f0f0f0; }
 .btn { display:inline-block; background:#2563eb; color:white; padding:8px 12px; border-radius:6px; text-decoration:none; margin-bottom:16px; }
 .btn-red { display:inline-block; background:#b91c1c; color:white; padding:6px 10px; border-radius:6px; text-decoration:none; }
+.sep { margin:32px 0; border-top:2px solid #d1d5db; }
 </style>
 </head>
 <body>
@@ -34,6 +35,7 @@ fi
 
 cat <<'HTML'
 </table>
+<div class="sep"></div>
 <div class="banner-red">Permanently Blocked Devices</div>
 <a class="btn" href="/cgi-bin/add_from_leases_block.sh">Add Device</a>
 <table>
