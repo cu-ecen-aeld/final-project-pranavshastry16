@@ -3,9 +3,13 @@
 . /usr/bin/device_helpers.sh
 MAP_DB="/etc/gateway/device_account_map.db"
 
-user_for_mac() {
+user_for_mac_local() {
     mac="$1"
-    [ -f "$MAP_DB" ] || return 0
+    if in_mac_list "$mac" "$ALLOW_LIST"; then
+        echo "-"
+        return
+    fi
+    [ -f "$MAP_DB" ] || return
     awk -F'|' -v m="$mac" '$2 == m { print $3; exit }' "$MAP_DB"
 }
 
@@ -29,6 +33,20 @@ code { background: #f7f7f7; padding: 2px 4px; }
 .btn-blue { display: inline-block; background: #2563eb; color: white; padding: 6px 10px; border-radius: 5px; text-decoration: none; }
 .badge-green { display: inline-block; background: #15803d; color: white; padding: 6px 10px; border-radius: 5px; font-weight: bold; }
 </style>
+<script>
+function removeAccess(ip, mac, isPerm) {
+    if (isPerm === '1') {
+        if (!confirm('This is a permanently allowed device. Are you sure you want to revoke access? Permanently allowed access will be lost and have to be added again.')) {
+            return false;
+        }
+        window.location.href = '/cgi-bin/revoke_permanent_device.sh?ip=' + encodeURIComponent(ip) + '&mac=' + encodeURIComponent(mac);
+        return false;
+    } else {
+        window.location.href = '/cgi-bin/deauth.sh?ip=' + encodeURIComponent(ip);
+        return false;
+    }
+}
+</script>
 </head>
 <body>
 <h1>Authenticated Devices</h1>
@@ -44,7 +62,9 @@ print_row() {
     rem="$(lease_remaining "$expiry")"
     status="$(status_for_ip_mac "$ip" "$mac")"
     [ "$hostid" = "*" ] && hostid=""
-    acc="$(user_for_mac "$mac")"
+    acc="$(user_for_mac_local "$mac")"
+    isperm="0"
+    in_mac_list "$mac" "$ALLOW_LIST" && isperm="1"
     echo "<tr>"
     echo "<td>$rem</td>"
     echo "<td><code>$mac</code></td>"
@@ -52,7 +72,7 @@ print_row() {
     echo "<td>$hostid</td>"
     echo "<td>$acc</td>"
     echo "<td><span class=\"badge-green\">$status</span></td>"
-    echo "<td><form action=\"/cgi-bin/deauth.sh\" method=\"get\"><input type=\"hidden\" name=\"ip\" value=\"$ip\"><button class=\"btn-red\" type=\"submit\">Remove Access</button></form></td>"
+    echo "<td><button class=\"btn-red\" onclick=\"removeAccess('$ip','$mac','$isperm')\">Remove Access</button></td>"
     echo "<td><a class=\"btn-blue\" href=\"/cgi-bin/device_control.sh?ip=$ip\">Advanced Control</a></td>"
     echo "</tr>"
 }

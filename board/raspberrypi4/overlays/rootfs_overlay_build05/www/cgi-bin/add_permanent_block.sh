@@ -9,8 +9,10 @@ BLOCK="/etc/gateway/permanent_block.list"
 grep -v "^${MAC}|" "$ALLOW" 2>/dev/null > /tmp/allow.tmp || true
 mv /tmp/allow.tmp "$ALLOW" 2>/dev/null || true
 
-grep -q "^${MAC}|" "$BLOCK" 2>/dev/null || echo "${MAC}|${HOST}" >> "$BLOCK"
+grep -v "^${MAC}|" "$BLOCK" 2>/dev/null > /tmp/block_old.tmp || true
+mv /tmp/block_old.tmp "$BLOCK" 2>/dev/null || true
+echo "${MAC}|${HOST}|1" >> "$BLOCK"
 
 echo "Status: 302 Found"
-echo "Location: /cgi-bin/permanent_block.sh"
+echo "Location: /cgi-bin/permanent_devices.sh"
 echo ""

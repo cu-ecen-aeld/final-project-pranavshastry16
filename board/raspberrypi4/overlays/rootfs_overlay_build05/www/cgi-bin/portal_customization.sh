@@ -10,11 +10,12 @@ cat <<HTML
 HTML
 [ "$SAVED" = "1" ] && echo '<p style="color:green;font-weight:bold;">Changes saved.</p>'
 cat <<HTML
-<p>Note: this build supports selecting a logo path already present on the device, not true browser file upload yet.</p>
+<p>Note: this build supports selecting a logo path already present on the device.</p>
 <form action="/cgi-bin/save_portal.sh" method="get">
-<p>Portal Title: <input type="text" name="title" value="${PORTAL_TITLE}"></p>
-<p>Portal Subtitle: <input type="text" name="subtitle" value="${PORTAL_SUBTITLE}"></p>
-<p>Logo Path: <input type="text" name="logo" value="${PORTAL_LOGO}"></p>
+<p>Portal Title:<br><input type="text" name="title" value="${PORTAL_TITLE}" style="width:520px;height:34px;"></p>
+<p>Portal Subtitle:<br><textarea name="subtitle" style="width:520px;height:90px;">${PORTAL_SUBTITLE}</textarea></p>
+<p>Logo Path:<br><input type="text" value="${PORTAL_LOGO}" readonly style="width:520px;background:#f3f4f6;"></p>
+<input type="hidden" name="logo" value="${PORTAL_LOGO}">
 <button type="submit">Save Portal Settings</button>
 </form>
 </body></html>

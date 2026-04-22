@@ -8,10 +8,9 @@ cat <<'HTML'
 <html>
 <head>
 <script>
-function toggleManualMac() {
-    var cb = document.getElementById('manualmaccb');
-    var row = document.getElementById('manualmacrow');
-    row.style.display = cb.checked ? 'block' : 'none';
+function useManualMac() {
+    document.getElementById('device').selectedIndex = -1;
+    document.getElementById('manualmacrow').style.display = 'block';
 }
 </script>
 </head>
@@ -19,7 +18,8 @@ function toggleManualMac() {
 <h1>Add Device Manually</h1>
 <form action="/cgi-bin/save_device_to_account.sh" method="get">
 <p>Select Device:
-<select name="device">
+<select id="device" name="device" size="1">
+<option value="">-- Select Device --</option>
 HTML
 
 while read -r expiry mac ip hostid clientid; do
@@ -31,8 +31,8 @@ cat <<'HTML'
 </select>
 </p>
 
-<p><label><input type="checkbox" id="manualmaccb" onclick="toggleManualMac()"> Add manually using MAC address</label></p>
-<p id="manualmacrow" style="display:none;">MAC Address: <input type="text" name="manualmac"></p>
+<p><button type="button" onclick="useManualMac()">Add manually using MAC address</button></p>
+<p id="manualmacrow" style="display:none;">MAC Address: <input type="text" name="manualmac" placeholder="FF:FF:FF:FF:FF:FF"></p>
 
 <p>Select User Account:
 <select name="user">

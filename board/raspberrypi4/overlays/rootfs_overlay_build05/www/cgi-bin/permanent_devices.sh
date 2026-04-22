@@ -39,13 +39,25 @@ cat <<'HTML'
 <div class="banner-red">Permanently Blocked Devices</div>
 <a class="btn" href="/cgi-bin/add_from_leases_block.sh">Add Device</a>
 <table>
-<tr><th>MAC</th><th>Hostname</th><th>Action</th></tr>
+<tr><th>MAC</th><th>Hostname</th><th>Allow user to see they are blocked</th><th>Action</th></tr>
 HTML
 
 if [ -f "$BLOCK" ]; then
-    while IFS='|' read -r mac host; do
+    while IFS='|' read -r mac host showmsg; do
         [ -z "$mac" ] && continue
-        echo "<tr><td>$mac</td><td>$host</td><td><a class=\"btn-red\" href=\"/cgi-bin/remove_permanent_block.sh?mac=$mac\">Remove</a></td></tr>"
+        checked=""
+        [ "$showmsg" = "1" ] && checked="checked"
+        echo "<tr>"
+        echo "<td>$mac</td>"
+        echo "<td>$host</td>"
+        echo "<td>"
+        echo "<form action=\"/cgi-bin/toggle_block_message.sh\" method=\"get\">"
+        echo "<input type=\"hidden\" name=\"mac\" value=\"$mac\">"
+        echo "<input type=\"checkbox\" name=\"showmsg\" value=\"1\" $checked onchange=\"this.form.submit()\">"
+        echo "</form>"
+        echo "</td>"
+        echo "<td><a class=\"btn-red\" href=\"/cgi-bin/remove_permanent_block.sh?mac=$mac\">Remove</a></td>"
+        echo "</tr>"
     done < "$BLOCK"
 fi
 
