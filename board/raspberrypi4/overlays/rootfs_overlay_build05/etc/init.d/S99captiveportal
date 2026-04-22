@@ -22,7 +22,13 @@ case "$1" in
         killall dnsmasq 2>/dev/null
         killall lighttpd 2>/dev/null
 
-        hostapd -B /etc/hostapd.conf
+        mkdir -p /root/gateway
+	[ -f /root/gateway/permanent_allow.list ] || cp /etc/gateway/permanent_allow.list /root/gateway/permanent_allow.list
+	[ -f /root/gateway/permanent_block.list ] || cp /etc/gateway/permanent_block.list /root/gateway/permanent_block.list
+	[ -f /root/gateway/user_accounts.db ] || cp /etc/gateway/user_accounts.db /root/gateway/user_accounts.db
+	[ -f /root/gateway/device_account_map.db ] || cp /etc/gateway/device_account_map.db /root/gateway/device_account_map.db
+
+	hostapd -B /etc/hostapd.conf
         dnsmasq --conf-file=/etc/dnsmasq.conf
         lighttpd -f /etc/lighttpd/lighttpd.conf
 
