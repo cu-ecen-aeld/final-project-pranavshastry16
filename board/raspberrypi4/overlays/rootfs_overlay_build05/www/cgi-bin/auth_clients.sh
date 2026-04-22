@@ -1,6 +1,13 @@
 #!/bin/sh
 
 . /usr/bin/device_helpers.sh
+MAP_DB="/etc/gateway/device_account_map.db"
+
+user_for_mac() {
+    mac="$1"
+    [ -f "$MAP_DB" ] || return 0
+    awk -F'|' -v m="$mac" '$2 == m { print $3; exit }' "$MAP_DB"
+}
 
 echo "Content-Type: text/html"
 echo ""
@@ -29,7 +36,7 @@ HTML
 
 print_table_header() {
     echo "<table>"
-    echo "<tr><th>Time Left</th><th>MAC</th><th>IP</th><th>Hostname</th><th>Status</th><th>Action</th><th>Advanced Control</th></tr>"
+    echo "<tr><th>Time Left</th><th>MAC</th><th>IP</th><th>Hostname</th><th>User Account</th><th>Status</th><th>Action</th><th>Advanced Control</th></tr>"
 }
 
 print_row() {
@@ -37,28 +44,25 @@ print_row() {
     rem="$(lease_remaining "$expiry")"
     status="$(status_for_ip_mac "$ip" "$mac")"
     [ "$hostid" = "*" ] && hostid=""
+    acc="$(user_for_mac "$mac")"
     echo "<tr>"
     echo "<td>$rem</td>"
     echo "<td><code>$mac</code></td>"
     echo "<td><code>$ip</code></td>"
     echo "<td>$hostid</td>"
+    echo "<td>$acc</td>"
     echo "<td><span class=\"badge-green\">$status</span></td>"
     echo "<td><form action=\"/cgi-bin/deauth.sh\" method=\"get\"><input type=\"hidden\" name=\"ip\" value=\"$ip\"><button class=\"btn-red\" type=\"submit\">Remove Access</button></form></td>"
     echo "<td><a class=\"btn-blue\" href=\"/cgi-bin/device_control.sh?ip=$ip\">Advanced Control</a></td>"
     echo "</tr>"
 }
 
-ONLINE_COUNT=0
 OFFLINE_COUNT=0
 
 if [ -f "$LEASE_FILE" ]; then
     while read -r expiry mac ip hostid clientid; do
-        if in_file "$ip" "$AUTH_FILE"; then
-            if is_online_mac "$mac"; then
-                ONLINE_COUNT=$((ONLINE_COUNT + 1))
-            else
-                OFFLINE_COUNT=$((OFFLINE_COUNT + 1))
-            fi
+        if in_file "$ip" "$AUTH_FILE" && ! is_online_mac "$mac"; then
+            OFFLINE_COUNT=$((OFFLINE_COUNT + 1))
         fi
     done < "$LEASE_FILE"
 fi
