@@ -8,6 +8,7 @@ AUTH_PERM="/tmp/permanent_allowed_clients"
 BLOCKED_FILE="/tmp/permanent_blocked_clients"
 ALLOW_LIST="/etc/gateway/permanent_allow.list"
 BLOCK_LIST="/etc/gateway/permanent_block.list"
+MAP_DB="/etc/gateway/device_account_map.db"
 
 is_online_mac() {
     mac="$1"
@@ -24,9 +25,7 @@ in_mac_list() {
     mac="$1"
     file="$2"
     [ -f "$file" ] || return 1
-    awk -F'|' -v m="$mac" '
-    NF >= 1 && $1 == m { found=1 }
-    END { exit(found ? 0 : 1) }' "$file"
+    awk -F'|' -v m="$mac" '$1 == m { found=1 } END { exit(found ? 0 : 1) }' "$file"
 }
 
 status_for_ip_mac() {
@@ -58,4 +57,14 @@ lease_remaining() {
     mins=$(((rem % 3600) / 60))
     secs=$((rem % 60))
     printf "%02dh %02dm %02ds" "$hrs" "$mins" "$secs"
+}
+
+user_for_mac() {
+    mac="$1"
+    if in_mac_list "$mac" "$ALLOW_LIST"; then
+        echo "-"
+        return
+    fi
+    [ -f "$MAP_DB" ] || return
+    awk -F'|' -v m="$mac" '$2 == m { print $3; exit }' "$MAP_DB"
 }
