@@ -1,10 +1,16 @@
 #!/bin/sh
 QUERY="$QUERY_STRING"
-IP="$(printf '%s\n' "$QUERY" | sed -n 's/.*ip=\([^&]*\).*/\1/p' | sed 's/%2E/./g')"
-MAC="$(printf '%s\n' "$QUERY" | sed -n 's/.*mac=\([^&]*\).*/\1/p')"
-HOST="$(printf '%s\n' "$QUERY" | sed -n 's/.*host=\([^&]*\).*/\1/p')"
-FILE="/etc/gateway/permanent_allow.list"
-grep -q "^$IP|" "$FILE" 2>/dev/null || echo "${IP}|${MAC}|${HOST}" >> "$FILE"
+MAC="$(printf '%s\n' "$QUERY" | tr '&' '\n' | sed -n 's/^mac=//p' | head -n1 | sed 's/%3A/:/g')"
+HOST="$(printf '%s\n' "$QUERY" | tr '&' '\n' | sed -n 's/^host=//p' | head -n1 | sed 's/+/ /g; s/%20/ /g; s/%2D/-/g')"
+
+ALLOW="/etc/gateway/permanent_allow.list"
+BLOCK="/etc/gateway/permanent_block.list"
+
+grep -v "^${MAC}|" "$BLOCK" 2>/dev/null > /tmp/block.tmp || true
+mv /tmp/block.tmp "$BLOCK" 2>/dev/null || true
+
+grep -q "^${MAC}|" "$ALLOW" 2>/dev/null || echo "${MAC}|${HOST}" >> "$ALLOW"
+
 echo "Status: 302 Found"
 echo "Location: /cgi-bin/permanent_allow.sh"
 echo ""

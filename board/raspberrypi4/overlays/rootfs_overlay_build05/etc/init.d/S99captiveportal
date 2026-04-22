@@ -27,8 +27,14 @@ case "$1" in
         lighttpd -f /etc/lighttpd/lighttpd.conf
 
 	: > /tmp/authorized_clients
+	: > /tmp/authorized_clients
+	: > /tmp/authenticated_clients
+	: > /tmp/manual_allowed_clients
+	: > /tmp/permanent_allowed_clients
+	: > /tmp/permanent_blocked_clients
+	/usr/bin/gateway_enforcer.sh >/tmp/gateway_enforcer.log 2>&1 &
 
-        iptables -F
+	iptables -F
         iptables -t nat -F
         iptables -P FORWARD DROP
 
@@ -45,6 +51,8 @@ case "$1" in
         killall hostapd 2>/dev/null
         killall dnsmasq 2>/dev/null
         killall lighttpd 2>/dev/null
+	killall gateway_enforcer.sh 2>/dev/null
+
         iptables -F
         iptables -t nat -F
         echo 0 > /proc/sys/net/ipv4/ip_forward

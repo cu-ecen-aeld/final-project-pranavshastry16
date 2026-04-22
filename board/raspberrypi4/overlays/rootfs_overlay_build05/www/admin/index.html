@@ -13,13 +13,17 @@
             display:block; color:white; text-decoration:none; padding:10px 12px; border-radius:6px;
             margin-bottom:8px; background:#1f2937;
         }
-        .sidebar a:hover { background:#2563eb; }
+        .sidebar a:hover, .sidebar a.active { background:#2563eb; }
         .content { flex:1; background:#e5e7eb; }
         iframe { width:100%; height:100%; border:none; background:white; }
-        .logout {
-            color:white; text-decoration:none; background:#b91c1c; padding:8px 14px; border-radius:6px;
-        }
+        .logout { color:white; text-decoration:none; background:#b91c1c; padding:8px 14px; border-radius:6px; }
     </style>
+    <script>
+        function setActive(el) {
+            document.querySelectorAll('.navlink').forEach(a => a.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
 </head>
 <body>
     <div class="topbar">
@@ -29,17 +33,18 @@
     <div class="layout">
         <div class="sidebar">
             <h2>Device Management</h2>
-            <a href="/cgi-bin/auth_clients.sh" target="mainframe">Authenticated Devices</a>
-            <a href="/cgi-bin/unauth_clients.sh" target="mainframe">Unauthenticated Devices</a>
-            <a href="/cgi-bin/permanent_allow.sh" target="mainframe">Permanently Allowed</a>
-            <a href="/cgi-bin/permanent_block.sh" target="mainframe">Permanently Blocked</a>
+            <a class="navlink active" onclick="setActive(this)" href="/cgi-bin/auth_clients.sh" target="mainframe">Authenticated Devices</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/unauth_clients.sh" target="mainframe">Unauthenticated Devices</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/all_devices.sh" target="mainframe">All Devices</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/permanent_allow.sh" target="mainframe">Permanently Allowed</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/permanent_block.sh" target="mainframe">Permanently Blocked</a>
 
             <h2>Wireless Management</h2>
-            <a href="/cgi-bin/wireless_settings.sh" target="mainframe">Wireless Settings</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/wireless_settings.sh" target="mainframe">Wireless Settings</a>
 
             <h2>System Management</h2>
-            <a href="/cgi-bin/portal_customization.sh" target="mainframe">Portal Customization</a>
-            <a href="/cgi-bin/password_settings.sh" target="mainframe">Password Settings</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/portal_customization.sh" target="mainframe">Portal Customization</a>
+            <a class="navlink" onclick="setActive(this)" href="/cgi-bin/password_settings.sh" target="mainframe">Password Settings</a>
         </div>
         <div class="content">
             <iframe name="mainframe" src="/cgi-bin/auth_clients.sh"></iframe>
