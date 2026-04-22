@@ -19,10 +19,7 @@ fi
 
 IS_BLOCKED=1
 if [ -n "$CURRENT_MAC" ] && [ -f "$BLOCK_LIST" ]; then
-    awk -F'|' -v m="$CURRENT_MAC" '
-    NF >= 2 && $2 == m { found=1 }
-    NF == 1 && $1 == m { found=1 }
-    END { exit(found ? 0 : 1) }' "$BLOCK_LIST"
+    awk -F'|' -v m="$CURRENT_MAC" '$1 == m { found=1 } END { exit(found ? 0 : 1) }' "$BLOCK_LIST"
     IS_BLOCKED=$?
 fi
 
@@ -39,6 +36,9 @@ if [ -n "$CLIENT_IP" ]; then
 
     $IPT -C FORWARD -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
     $IPT -I FORWARD 1 -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+    $IPT -t nat -C PREROUTING -s "$CLIENT_IP" -i wlan0 -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
+    $IPT -t nat -I PREROUTING 1 -s "$CLIENT_IP" -i wlan0 -p tcp --dport 80 -j ACCEPT
 
     grep -qx "$CLIENT_IP" "$AUTH_FILE" 2>/dev/null || echo "$CLIENT_IP" >> "$AUTH_FILE"
     grep -qx "$CLIENT_IP" "$AUTH_MANUAL" 2>/dev/null || echo "$CLIENT_IP" >> "$AUTH_MANUAL"

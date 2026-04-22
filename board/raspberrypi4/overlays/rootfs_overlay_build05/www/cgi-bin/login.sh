@@ -87,7 +87,6 @@ MAX_DEV="$(max_devices_for_user "$USERNAME")"
 CUR_DEV="$(count_devices_for_user "$USERNAME")"
 
 if [ -n "$CURRENT_MAC" ]; then
-    # If this MAC already belongs to this user, don't count it as new
     EXISTING_USER="$(awk -F'|' -v m="$CURRENT_MAC" '$2 == m { print $3; exit }' "$MAP_DB" 2>/dev/null)"
     if [ "$EXISTING_USER" != "$USERNAME" ] && [ "$CUR_DEV" -ge "$MAX_DEV" ]; then
         echo "Maximum allowed devices reached for this account." > "$ERR_FILE"
@@ -104,6 +103,10 @@ if [ -n "$CLIENT_IP" ]; then
 
     $IPT -C FORWARD -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
     $IPT -I FORWARD 1 -d "$CLIENT_IP" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+    # IMPORTANT: exempt authenticated client from captive HTTP DNAT
+    $IPT -t nat -C PREROUTING -s "$CLIENT_IP" -i wlan0 -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
+    $IPT -t nat -I PREROUTING 1 -s "$CLIENT_IP" -i wlan0 -p tcp --dport 80 -j ACCEPT
 
     grep -qx "$CLIENT_IP" "$AUTH_FILE" 2>/dev/null || echo "$CLIENT_IP" >> "$AUTH_FILE"
     grep -qx "$CLIENT_IP" "$AUTH_PORTAL" 2>/dev/null || echo "$CLIENT_IP" >> "$AUTH_PORTAL"
