@@ -9,20 +9,16 @@ is_auth() {
 
 if is_auth; then
     echo "Status: 204 No Content"
+    echo "Content-Length: 0"
+    echo "Cache-Control: no-cache, no-store, must-revalidate"
+    echo "Pragma: no-cache"
+    echo "Expires: 0"
     echo ""
 else
-    echo "Content-Type: text/html"
+    echo "Status: 302 Found"
+    echo "Location: http://192.168.60.1/"
+    echo "Cache-Control: no-cache, no-store, must-revalidate"
+    echo "Pragma: no-cache"
+    echo "Expires: 0"
     echo ""
-    cat <<HTML
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="refresh" content="0; url=http://192.168.60.1/">
-<title>Redirecting</title>
-</head>
-<body>
-Redirecting to captive portal...
-</body>
-</html>
-HTML
 fi

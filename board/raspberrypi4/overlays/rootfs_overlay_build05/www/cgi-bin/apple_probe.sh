@@ -7,24 +7,20 @@ is_auth() {
     grep -qx "$CLIENT_IP" "$AUTH_FILE" 2>/dev/null
 }
 
-echo "Content-Type: text/html"
-echo ""
-
 if is_auth; then
+    echo "Content-Type: text/html"
+    echo "Cache-Control: no-cache, no-store, must-revalidate"
+    echo "Pragma: no-cache"
+    echo "Expires: 0"
+    echo ""
     cat <<HTML
 <HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>
 HTML
 else
-    cat <<HTML
-<!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="refresh" content="0; url=http://192.168.60.1/">
-<title>Redirecting</title>
-</head>
-<body>
-Redirecting to captive portal...
-</body>
-</html>
-HTML
+    echo "Status: 302 Found"
+    echo "Location: http://192.168.60.1/"
+    echo "Cache-Control: no-cache, no-store, must-revalidate"
+    echo "Pragma: no-cache"
+    echo "Expires: 0"
+    echo ""
 fi
