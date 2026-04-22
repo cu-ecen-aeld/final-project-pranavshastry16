@@ -1,0 +1,10 @@
+#!/bin/sh
+QUERY="$QUERY_STRING"
+IP="$(printf '%s\n' "$QUERY" | sed -n 's/.*ip=\([^&]*\).*/\1/p' | sed 's/%2E/./g')"
+MAC="$(printf '%s\n' "$QUERY" | sed -n 's/.*mac=\([^&]*\).*/\1/p')"
+HOST="$(printf '%s\n' "$QUERY" | sed -n 's/.*host=\([^&]*\).*/\1/p')"
+FILE="/etc/gateway/permanent_allow.list"
+grep -q "^$IP|" "$FILE" 2>/dev/null || echo "${IP}|${MAC}|${HOST}" >> "$FILE"
+echo "Status: 302 Found"
+echo "Location: /cgi-bin/permanent_allow.sh"
+echo ""

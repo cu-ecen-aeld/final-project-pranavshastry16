@@ -58,12 +58,20 @@ code { background: #f7f7f7; padding: 2px 4px; }
     border-radius: 5px;
     font-weight: bold;
 }
+.btn-blue {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
 </style>
 </head>
 <body>
 <h1>Authenticated Devices</h1>
 <table>
-<tr><th>Lease Remaining</th><th>MAC</th><th>IP</th><th>Hostname</th><th>Status</th><th>Action</th></tr>
+<tr><th>Lease Remaining</th><th>MAC</th><th>IP</th><th>Hostname</th><th>Status</th><th>Action</th><th>Advanced Control</th></tr>
 HTML
 
 if [ -f "$LEASE_FILE" ]; then
@@ -83,6 +91,7 @@ if [ -f "$LEASE_FILE" ]; then
             echo "<button class=\"btn-red\" type=\"submit\">Remove Access</button>"
             echo "</form>"
             echo "</td>"
+            echo "<td><a class=\"btn-blue\" href=\"/cgi-bin/device_control.sh?ip=$ip\">Advanced Control</a></td>"
             echo "</tr>"
         fi
     done < "$LEASE_FILE"
