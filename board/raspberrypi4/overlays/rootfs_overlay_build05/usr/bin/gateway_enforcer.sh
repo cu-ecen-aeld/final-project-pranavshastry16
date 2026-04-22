@@ -1,8 +1,9 @@
 #!/bin/sh
 
 LEASE_FILE="/var/lib/misc/dnsmasq.leases"
-ALLOW_LIST="/etc/gateway/permanent_allow.list"
-BLOCK_LIST="/etc/gateway/permanent_block.list"
+ALLOW_LIST="/root/gateway/permanent_allow.list"
+BLOCK_LIST="/root/gateway/permanent_block.list"
+MAP_DB="/root/gateway/device_account_map.db"
 
 AUTH_FILE="/tmp/authorized_clients"
 AUTH_PORTAL="/tmp/authenticated_clients"
@@ -21,12 +22,16 @@ allow_ip() {
 
     $IPT -C FORWARD -d "$ip" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
     $IPT -I FORWARD 1 -d "$ip" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+    $IPT -t nat -C PREROUTING -s "$ip" -i wlan0 -p tcp --dport 80 -j ACCEPT 2>/dev/null || \
+    $IPT -t nat -I PREROUTING 1 -s "$ip" -i wlan0 -p tcp --dport 80 -j ACCEPT
 }
 
 remove_ip() {
     ip="$1"
     while $IPT -D FORWARD -s "$ip" -i wlan0 -o eth0 -j ACCEPT 2>/dev/null; do :; done
     while $IPT -D FORWARD -d "$ip" -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null; do :; done
+    while $IPT -t nat -D PREROUTING -s "$ip" -i wlan0 -p tcp --dport 80 -j ACCEPT 2>/dev/null; do :; done
 }
 
 remove_from_file() {
@@ -46,10 +51,20 @@ is_in_list_by_mac() {
 }
 
 touch "$AUTH_FILE" "$AUTH_PORTAL" "$AUTH_MANUAL" "$AUTH_PERM" "$BLOCKED_FILE"
+[ -f "$MAP_DB" ] || touch "$MAP_DB"
 
 while true; do
     : > "$AUTH_PERM"
     : > "$BLOCKED_FILE"
+
+    # Permanent allow should always override any stale account mapping
+    if [ -f "$ALLOW_LIST" ] && [ -f "$MAP_DB" ]; then
+        while IFS='|' read -r allow_mac allow_host; do
+            [ -z "$allow_mac" ] && continue
+            awk -F'|' -v m="$allow_mac" '$2 != m' "$MAP_DB" > /tmp/map_scrub.tmp
+            mv /tmp/map_scrub.tmp "$MAP_DB"
+        done < "$ALLOW_LIST"
+    fi
 
     if [ -f "$LEASE_FILE" ]; then
         while read -r expiry mac ip hostid clientid; do
