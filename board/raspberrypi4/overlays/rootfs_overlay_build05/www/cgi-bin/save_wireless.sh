@@ -4,6 +4,15 @@ SSID="$(printf '%s\n' "$QUERY" | tr '&' '\n' | sed -n 's/^ssid=//p' | head -n1 |
 PASS="$(printf '%s\n' "$QUERY" | tr '&' '\n' | sed -n 's/^pass=//p' | head -n1 | sed 's/+/ /g; s/%20/ /g')"
 SEC="$(printf '%s\n' "$QUERY" | tr '&' '\n' | sed -n 's/^security=//p' | head -n1)"
 
+if [ "$SEC" = "wpa2" ] || [ "$SEC" = "wpa3" ]; then
+    if [ ${#PASS} -lt 8 ]; then
+        echo "Status: 302 Found"
+        echo "Location: /cgi-bin/wireless_settings.sh?error=Enter+8+digit+password"
+        echo ""
+        exit 0
+    fi
+fi
+
 cat > /etc/gateway/wireless.conf <<CFG
 SSID="${SSID}"
 SECURITY="${SEC}"

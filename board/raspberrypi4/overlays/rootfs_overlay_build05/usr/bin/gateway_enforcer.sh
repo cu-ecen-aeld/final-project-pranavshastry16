@@ -42,11 +42,10 @@ is_in_list_by_mac() {
     mac="$1"
     file="$2"
     [ -f "$file" ] || return 1
-    awk -F'|' -v m="$mac" '
-    NF >= 2 && $2 == m { found=1 }
-    NF == 1 && $1 == m { found=1 }
-    END { exit(found ? 0 : 1) }' "$file"
+    awk -F'|' -v m="$mac" '$1 == m { found=1 } END { exit(found ? 0 : 1) }' "$file"
 }
+
+touch "$AUTH_FILE" "$AUTH_PORTAL" "$AUTH_MANUAL" "$AUTH_PERM" "$BLOCKED_FILE"
 
 while true; do
     : > "$AUTH_PERM"
@@ -71,5 +70,5 @@ while true; do
         done < "$LEASE_FILE"
     fi
 
-    sleep 5
+    sleep 3
 done
